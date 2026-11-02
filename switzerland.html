@@ -182,6 +182,7 @@ header {
 }
 
 /* Название рядом с меткой */
+.music-pin span { display:flex;align-items:center;justify-content:center;width:25px;height:25px;border:2px solid #fff8e8;border-radius:50%;color:#fff;font:bold 17px Georgia;box-shadow:0 1px 5px #5b4932; }
 .map-label {
     padding: 2px 5px !important;
     border: 0 !important;
@@ -948,10 +949,7 @@ var map = L.map("map", {
     maxZoom: 17
 });
 
-L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>',
-    maxZoom: 19
-}).addTo(map);
+document.getElementById("map").style.background = "#e9d7ad";
 
 // Примерные границы Швейцарии для первоначального показа.
 // После загрузки GeoJSON ниже будут использованы точные границы.
@@ -975,8 +973,7 @@ fetch("https://raw.githubusercontent.com/datasets/geo-countries/master/data/coun
     })
     .then(function(data) {
         var neighbors = [
-            "Switzerland", "France", "Germany",
-            "Italy", "Austria", "Liechtenstein"
+            "Switzerland"
         ];
 
         var selected = {
@@ -1000,18 +997,12 @@ fetch("https://raw.githubusercontent.com/datasets/geo-countries/master/data/coun
                         color: "#765333",
                         weight: 3,
                         opacity: 1,
-                        fillColor: "#d8c6a5",
-                        fillOpacity: 0.25
+                        fillColor: "#ead8a8",
+                        fillOpacity: 1
                     };
                 }
 
-                return {
-                    color: "#51483e",
-                    weight: 1.8,
-                    opacity: 0.85,
-                    fillColor: "#bcb4a7",
-                    fillOpacity: 0.08
-                };
+                return { color: "#51483e", weight: 0, opacity: 0, fillOpacity: 0 };
             }
         }).addTo(map);
     })
@@ -1117,12 +1108,12 @@ function refreshMarkerAppearance() {
         var radius = markerRadius();
         entry.marker.setRadius(radius);
 
-        if (zoom >= 8) {
+        if (zoom >= 9) {
             if (!entry.marker.getTooltip()) {
                 entry.marker.bindTooltip(entry.item.name, {
                     permanent: true,
-                    direction: "right",
-                    offset: [7, 0],
+                    direction: "top",
+                    offset: [0, -10],
                     className: "map-label"
                 });
             } else {
@@ -1151,13 +1142,12 @@ function updateMarkers() {
 objects.forEach(function(item) {
     var color = categories[item.category].color;
 
-    var marker = L.circleMarker([item.lat, item.lng], {
-        radius: 4.5,
-        color: "#fffaf0",
-        weight: 1.5,
-        fillColor: color,
-        fillOpacity: 0.96
-    });
+    var symbols = {venues:"♫", festivals:"♪", musicians:"♬", museums:"♩", education:"♬", groups:"𝄞"};
+    var marker = L.marker([item.lat, item.lng], {icon: L.divIcon({
+        className: "music-pin",
+        html: '<span style="background:'+color+'">'+symbols[item.category]+'</span>',
+        iconSize: [25,25], iconAnchor:[12,12]
+    })});
 
     marker.on("click", function() {
         openObject(item);
