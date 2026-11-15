@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Музыкальное путешествие</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 92px;
+}
+
+body {
+    margin: 0;
+    font-family: Georgia, "Times New Roman", serif;
+    color: #302b27;
+    line-height: 1.7;
+    overflow-wrap: break-word;
+    background-color: #f5efdf;
+    background-image:
+        radial-gradient(ellipse at 15% 20%, rgba(255,255,255,0.85), transparent 45%),
+        radial-gradient(ellipse at 85% 75%, rgba(218,197,157,0.23), transparent 48%),
+        repeating-linear-gradient(
+            0deg,
+            rgba(117,91,57,0.025) 0px,
+            rgba(117,91,57,0.025) 1px,
+            transparent 1px,
+            transparent 5px
+        );
+}
+
+/* Нотные станы на фоне */
+.music-background {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+    user-select: none;
+}
+
+.music-staff {
+    position: absolute;
+    left: -18%;
+    width: 155%;
+    height: 56px;
+    opacity: 0.72;
+    transform: translate3d(var(--shift, 0px), 0, 0) rotate(var(--angle, -3deg));
+    will-change: transform;
+}
+
+.music-staff::before {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 0;
+    width: 100%;
+    height: 45px;
+    background: repeating-linear-gradient(
+        to bottom,
+        rgba(112,79,47,0.17) 0,
+        rgba(112,79,47,0.17) 1px,
+        transparent 1px,
+        transparent 11px
+    );
+}
+
+.music-staff span {
+    position: absolute;
+    color: rgba(112,79,47,0.24);
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 39px;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.staff-one { top: 13%; --angle: -3deg; }
+.staff-two { top: 35%; left: -28%; --angle: 2deg; }
+.staff-three { top: 59%; left: -12%; --angle: -2deg; }
+.staff-four { top: 82%; left: -24%; --angle: 3deg; }
+
+.staff-one span:nth-child(1) { left: 8%; top: -5px; }
+.staff-one span:nth-child(2) { left: 21%; top: 7px; }
+.staff-one span:nth-child(3) { left: 36%; top: 17px; }
+.staff-one span:nth-child(4) { left: 52%; top: -2px; }
+.staff-one span:nth-child(5) { left: 69%; top: 25px; }
+.staff-one span:nth-child(6) { left: 86%; top: 8px; }
+
+.staff-two span:nth-child(1) { left: 12%; top: 15px; }
+.staff-two span:nth-child(2) { left: 27%; top: -5px; }
+.staff-two span:nth-child(3) { left: 44%; top: 25px; }
+.staff-two span:nth-child(4) { left: 61%; top: 5px; }
+.staff-two span:nth-child(5) { left: 77%; top: 17px; }
+.staff-two span:nth-child(6) { left: 92%; top: -4px; }
+
+.staff-three span:nth-child(1) { left: 5%; top: 5px; }
+.staff-three span:nth-child(2) { left: 23%; top: 25px; }
+.staff-three span:nth-child(3) { left: 40%; top: 0; }
+.staff-three span:nth-child(4) { left: 57%; top: 15px; }
+.staff-three span:nth-child(5) { left: 74%; top: -5px; }
+.staff-three span:nth-child(6) { left: 89%; top: 25px; }
+
+.staff-four span:nth-child(1) { left: 10%; top: 25px; }
+.staff-four span:nth-child(2) { left: 29%; top: 5px; }
+.staff-four span:nth-child(3) { left: 47%; top: -5px; }
+.staff-four span:nth-child(4) { left: 64%; top: 17px; }
+.staff-four span:nth-child(5) { left: 81%; top: 0; }
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+/* Верхнее меню */
+header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: rgba(255,252,244,0.97);
+    border-bottom: 1px solid #e1d3bb;
+    box-shadow: 0 3px 15px rgba(65,48,29,0.07);
+    backdrop-filter: blur(10px);
+}
+
+.header-inner {
+    max-width: 1150px;
+    margin: 0 auto;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.logo {
+    color: #805b36;
+    font-size: 21px;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+nav a {
+    display: inline-block;
+    padding: 7px 12px;
+    border-radius: 5px;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    transition: background 0.2s;
+}
+
+nav a:hover {
+    background: #eee2cc;
+    color: #805b36;
+}
+
+/* Главная часть */
+.hero {
+    position: relative;
+    z-index: 1;
+    max-width: 1150px;
+    margin: 0 auto;
+    padding: 90px 24px 85px;
+    text-align: center;
+}
+
+.hero h1 {
+    max-width: 850px;
+    margin: 0 auto 22px;
+    font-size: clamp(34px, 5vw, 57px);
+    font-weight: normal;
+    line-height: 1.2;
+    color: #403126;
+    overflow-wrap: anywhere;
+}
+
+.hero p {
+    max-width: 650px;
+    margin: 0 auto 30px;
+    padding: 12px 20px;
+    border-radius: 8px;
+    background: rgba(255,251,241,0.88);
+    color: #62564a;
+    font-size: 18px;
+    backdrop-filter: blur(4px);
+}
+
+.primary-button {
+    display: inline-block;
+    max-width: 100%;
+    padding: 12px 24px;
+    border: 1px solid #765333;
+    border-radius: 5px;
+    background: #765333;
+    color: #fffaf1;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    text-align: center;
+    white-space: normal;
+    overflow-wrap: break-word;
+    transition: background 0.2s;
+}
+
+.primary-button:hover {
+    background: #5c4028;
+}
+
+/* Разделы сайта */
+section {
+    position: relative;
+    z-index: 1;
+    max-width: 1150px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 55px 24px;
+    scroll-margin-top: 92px;
+}
+
+.section-heading {
+    margin-bottom: 28px;
+    text-align: center;
+}
+
+.section-heading h2 {
+    margin: 0 0 8px;
+    font-size: 34px;
+    font-weight: normal;
+    color: #403126;
+}
+
+.section-heading p {
+    margin: 0;
+    color: #716354;
+    font-family: Arial, sans-serif;
+    font-size: 15px;
+}
+
+/* Карточки стран */
+.country-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+    width: 100%;
+    align-items: stretch;
+}
+
+.country-card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 0;
+    min-height: 350px;
+    padding: 28px 24px;
+    border: 1px solid #e2d4bd;
+    border-radius: 8px;
+    background: rgba(255,252,245,0.93);
+    box-shadow: 0 5px 18px rgba(66,47,27,0.06);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.country-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(66,47,27,0.10);
+}
+
+.country-card h3 {
+    margin: 10px 0;
+    font-size: 30px;
+    font-weight: normal;
+    color: #65472c;
+    overflow-wrap: anywhere;
+}
+
+.country-card p {
+    width: 100%;
+    min-width: 0;
+    flex-grow: 1;
+    margin: 0 0 20px;
+    color: #62564a;
+    font-size: 15px;
+    overflow-wrap: anywhere;
+    word-break: normal;
+}
+
+.country-card .primary-button {
+    margin-top: auto;
+}
+
+/* О проекте */
+.about-panel {
+    padding: 32px;
+    border: 1px solid #e2d4bd;
+    border-radius: 9px;
+    background: rgba(255,252,245,0.94);
+    box-shadow: 0 5px 18px rgba(66,47,27,0.05);
+    backdrop-filter: blur(5px);
+}
+
+.about-panel p {
+    margin: 0 0 14px;
+    color: #62564a;
+}
+
+.about-panel p:last-child {
+    margin-bottom: 0;
+}
+
+footer {
+    position: relative;
+    z-index: 1;
+    margin-top: 35px;
+    padding: 25px 20px;
+    border-top: 1px solid #e1d3bb;
+    background: rgba(255,252,244,0.94);
+    color: #786957;
+    text-align: center;
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+}
+
+/* Планшеты */
+@media (max-width: 900px) {
+    .header-inner {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .country-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* Телефоны и маленькие экраны */
+@media (max-width: 520px) {
+    .header-inner {
+        padding: 14px 12px;
+        gap: 12px;
+    }
+
+    .logo {
+        width: 100%;
+        text-align: center;
+        font-size: clamp(17px, 5vw, 21px);
+        white-space: normal;
+        line-height: 1.25;
+    }
+
+    nav {
+        gap: 4px;
+    }
+
+    nav a {
+        padding: 7px 8px;
+        font-size: 13px;
+    }
+
+    .hero {
+        padding: 60px 18px;
+    }
+
+    .hero h1 {
+        font-size: 34px;
+    }
+
+    .hero p {
+        font-size: 16px;
+    }
+
+    section {
+        padding: 40px 18px;
+    }
+
+    .section-heading h2 {
+        font-size: 29px;
+    }
+
+    .country-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 18px;
+    }
+
+    .country-card {
+        min-height: 0;
+        padding: 24px 20px;
+    }
+
+    .about-panel {
+        padding: 22px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="music-background" aria-hidden="true">
+    <div class="music-staff staff-one"><span>♫</span><span>♪</span><span>♩</span><span>♬</span><span>♪</span><span>♩</span></div>
+    <div class="music-staff staff-two"><span>♪</span><span>♩</span><span>♫</span><span>♬</span><span>♩</span><span>♪</span></div>
+    <div class="music-staff staff-three"><span>♩</span><span>♫</span><span>♪</span><span>♬</span><span>♫</span><span>♩</span></div>
+    <div class="music-staff staff-four"><span>♬</span><span>♪</span><span>♫</span><span>♩</span><span>♪</span></div>
+</div>
+
+<header>
+    <div class="header-inner">
+        <a class="logo" href="#home">♫ Музыкальное путешествие</a>
+
+        <nav aria-label="Главное меню">
+            <a href="#home">Главная</a>
+            <a href="#countries">Страны</a>
+            <a href="#about">О проекте</a>
+        </nav>
+
+    </div>
+</header>
+
+<main>
+
+    <section class="hero" id="home">
+        <h1>Виртуальное музыкальное путешествие по городам немецкоязычных стран</h1>
+
+        <p>
+            Откройте страны, в которых жили великие композиторы,
+            создавались знаменитые произведения и развивалась музыкальная культура.
+        </p>
+
+        <a class="primary-button" href="#countries">Начать путешествие</a>
+    </section>
+
+    <section id="countries">
+        <div class="section-heading">
+            <h2>Выберите страну</h2>
+            <p>Познакомьтесь с музыкальным наследием немецкоязычной Европы</p>
+        </div>
+
+        <div class="country-grid">
+
+            <article class="country-card">
+                <h3>Германия</h3>
+                <p>
+                    Страна с богатой музыкальной историей, связанная
+                    с Бахом, Бетховеном и многими другими композиторами.
+                    Здесь находятся знаменитые оперные театры,
+                    концертные залы и исторические музыкальные места.
+                </p>
+                <a class="primary-button" href="germany.html">
+                    Исследовать страну
+                </a>
+            </article>
+
+            <article class="country-card">
+                <h3>Австрия</h3>
+                <p>
+                    Родина Моцарта и важный центр европейской классической
+                    музыки. Австрийские города известны концертами,
+                    музыкальными традициями и историей великих композиторов.
+                </p>
+                <a class="primary-button" href="austria.html">
+                    Исследовать страну
+                </a>
+            </article>
+
+            <article class="country-card">
+                <h3>Швейцария</h3>
+                <p>
+                    Страна с разнообразной музыкальной культурой,
+                    концертными площадками и фестивалями.
+                    Здесь можно познакомиться с музыкальными
+                    традициями разных регионов.
+                </p>
+                <a class="primary-button" href="switzerland.html">
+                    Исследовать страну
+                </a>
+            </article>
+
+        </div>
+    </section>
+
+    <section id="about">
+        <div class="section-heading">
+            <h2>О проекте</h2>
+        </div>
+
+        <div class="about-panel">
+            <p>
+                «Музыкальное путешествие» посвящено музыкальному наследию Германии,
+                Австрии и Швейцарии. Проект показывает, как история этих стран
+                связана с жизнью композиторов, развитием музыкальных жанров и
+                появлением известных произведений.
+            </p>
+
+            <p>
+                Для каждой страны подготовлена отдельная страница с городами,
+                в которых жили и работали композиторы. На карте можно находить
+                связанные с ними места: дома и музеи, концертные залы, оперные
+                театры, памятники и другие объекты музыкальной истории. Описание
+                помогает понять, чем известно каждое место и какое отношение оно
+                имеет к композитору или музыкальному произведению.
+            </p>
+
+            <p>
+                Материалы объединяют географию, биографии и культурный контекст.
+                Благодаря этому посетитель может не просто прочитать отдельные
+                факты, а проследить связи между людьми, городами и событиями.
+                Страницы стран можно изучать самостоятельно, переходя от одной
+                точки на карте к другой и постепенно открывая музыкальную историю
+                немецкоязычной Европы.
+            </p>
+        </div>
+    </section>
+
+</main>
+
+<footer>
+    Виртуальное музыкальное путешествие по городам немецкоязычных стран
+</footer>
+
+<script>
+(function () {
+    var staves = document.querySelectorAll(".music-staff");
+    var ticking = false;
+    var reducedMotion = window.matchMedia &&
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (reducedMotion || !staves.length) return;
+
+    function updateStaffPositions() {
+        var scrollPosition = window.pageYOffset || document.documentElement.scrollTop || 0;
+
+        staves.forEach(function (staff, index) {
+            var speed = [0.055, -0.045, 0.035, -0.05][index] || 0.04;
+            staff.style.setProperty("--shift", (scrollPosition * speed) + "px");
+        });
+
+        ticking = false;
+    }
+
+    window.addEventListener("scroll", function () {
+        if (!ticking) {
+            window.requestAnimationFrame(updateStaffPositions);
+            ticking = true;
+        }
+    }, { passive: true });
+
+    updateStaffPositions();
+})();
+</script>
+
+</body>
+</html>
